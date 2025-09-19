@@ -360,6 +360,70 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> with TickerProv
                                 ),
                               ],
 
+                              // Floating Action Button as part of content
+                              Container(
+                                margin: const EdgeInsets.all(20),
+                                child: Center(
+                                  child: AnimatedBuilder(
+                                    animation: _particleController,
+                                    builder: (context, child) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(30),
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: isDark
+                                                ? [AppTheme.darkNeonBlue, AppTheme.darkNeonPurple]
+                                                : [AppTheme.neonBlue, AppTheme.neonPurple],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: (isDark ? AppTheme.darkNeonBlue : AppTheme.neonBlue)
+                                                  .withOpacity(0.5),
+                                              blurRadius: 20,
+                                              spreadRadius: 0,
+                                              offset: const Offset(0, 10),
+                                            ),
+                                            BoxShadow(
+                                              color: (isDark ? AppTheme.darkNeonBlue : AppTheme.neonBlue)
+                                                  .withOpacity(0.3 + 0.2 * math.sin(_particleController.value * 2 * math.pi)),
+                                              blurRadius: 40,
+                                              spreadRadius: 0,
+                                              offset: const Offset(0, 20),
+                                            ),
+                                          ],
+                                        ),
+                                        child: FloatingActionButton.extended(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => const AddPaymentMethodPage(),
+                                              ),
+                                            ).then((_) => _loadPaymentMethods());
+                                          },
+                                          backgroundColor: Colors.transparent,
+                                          elevation: 0,
+                                          icon: const Icon(
+                                            Icons.add,
+                                            color: Colors.white,
+                                          ),
+                                          label: Text(
+                                            'إضافة بطاقة جديدة',
+                                            style: GoogleFonts.cairo(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+
                               const SizedBox(height: 120),
                             ],
                           );
@@ -372,18 +436,6 @@ class _PaymentMethodsPageState extends State<PaymentMethodsPage> with TickerProv
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddPaymentMethodPage(),
-            ),
-          ).then((_) => _loadPaymentMethods());
-        },
-        backgroundColor: AppTheme.neonBlue,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

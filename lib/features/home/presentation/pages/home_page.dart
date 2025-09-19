@@ -141,19 +141,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 child: CustomScrollView(
                   slivers: [
                     // App Bar
-                    const SliverToBoxAdapter(
-                      child: HomeAppBar(),
+                    SliverToBoxAdapter(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              (isDark ? AppTheme.darkNeonBlue : AppTheme.neonBlue).withOpacity(0.1),
+                              (isDark ? AppTheme.darkNeonPurple : AppTheme.neonPurple).withOpacity(0.1),
+                            ],
+                          ),
+                        ),
+                        child: const HomeAppBar(),
+                      ),
                     ),
 
                     // Search Bar
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                         child: SearchBarWidget(
                           onSearch: (query) {
                             Navigator.pushNamed(
                               context,
-                              '/products',
+                              AppConfig.searchRoute,
                               arguments: {'search': query},
                             );
                           },
@@ -164,7 +176,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     // Holographic Banner Carousel
                     SliverToBoxAdapter(
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                         child: CarouselSlider(
                           options: CarouselOptions(
                             height: 220,
@@ -286,7 +298,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     // Categories Section
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -304,6 +316,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               height: 140,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
+                                padding: EdgeInsets.zero,
                                 itemCount: _categories.length,
                                 itemBuilder: (context, index) {
                                   final category = _categories[index];
@@ -331,7 +344,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     // Featured Products
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -372,7 +385,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           return SliverToBoxAdapter(
                             child: Container(
                               height: 200,
-                              margin: const EdgeInsets.all(20),
+                              margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                               child: AppTheme.glassMorphismContainer(
                                 child: Center(
                                   child: Column(
@@ -414,7 +427,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         if (featuredProducts.isEmpty) {
                           return SliverToBoxAdapter(
                             child: Container(
-                              margin: const EdgeInsets.all(20),
+                              margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                               child: AppTheme.glassMorphismContainer(
                                 padding: const EdgeInsets.all(40),
                                 child: Column(
@@ -444,7 +457,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         }
 
                         return SliverPadding(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                           sliver: SliverGrid(
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
@@ -522,7 +535,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
                 child: FloatingActionButton.extended(
                   onPressed: () {
-                    Navigator.pushNamed(context, AppConfig.cartRoute);
+                    // Switch to cart tab instead of navigating
+                    final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+                    navigationProvider.setIndex(1);
                   },
                   backgroundColor: Colors.transparent,
                   elevation: 0,

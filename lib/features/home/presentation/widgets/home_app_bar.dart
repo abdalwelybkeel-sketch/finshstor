@@ -5,6 +5,7 @@ import 'dart:math' as math;
 
 import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/providers/navigation_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class HomeAppBar extends StatefulWidget {
@@ -48,7 +49,7 @@ class _HomeAppBarState extends State<HomeAppBar>
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: AppTheme.glassMorphismContainer(
         padding: const EdgeInsets.all(20),
         child: Row(
@@ -149,7 +150,7 @@ class _HomeAppBarState extends State<HomeAppBar>
                   ),
                   child: IconButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/notifications');
+                      Navigator.pushNamed(context, AppConfig.notificationsRoute);
                     },
                     icon: Stack(
                       children: [
@@ -197,7 +198,9 @@ class _HomeAppBarState extends State<HomeAppBar>
             // Futuristic Profile Avatar
             GestureDetector(
               onTap: () {
-                Navigator.pushNamed(context, AppConfig.profileRoute);
+                // Switch to profile tab instead of navigating
+                final navigationProvider = Provider.of<NavigationProvider>(context, listen: false);
+                navigationProvider.setIndex(3);
               },
               child: Consumer<AuthProvider>(
                 builder: (context, authProvider, child) {

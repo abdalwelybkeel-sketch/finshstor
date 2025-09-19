@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'dart:math' as math;
 
 import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -9,6 +11,7 @@ import '../providers/vendor_provider.dart';
 import '../widgets/dashboard_stats_card.dart';
 import '../widgets/recent_orders_list.dart';
 import '../widgets/vendor_app_bar.dart';
+import '../../../home/presentation/widgets/futuristic_background.dart';
 
 class VendorDashboardPage extends StatefulWidget {
   const VendorDashboardPage({super.key});
@@ -17,11 +20,47 @@ class VendorDashboardPage extends StatefulWidget {
   State<VendorDashboardPage> createState() => _VendorDashboardPageState();
 }
 
-class _VendorDashboardPageState extends State<VendorDashboardPage> {
+class _VendorDashboardPageState extends State<VendorDashboardPage> with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late AnimationController _particleController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
   @override
   void initState() {
     super.initState();
+    _initAnimations();
     _loadVendorData();
+  }
+
+  void _initAnimations() {
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _particleController = AnimationController(
+      duration: const Duration(seconds: 10),
+      vsync: this,
+    )..repeat();
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+    ));
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
+    ));
+
+    _animationController.forward();
   }
 
   Future<void> _loadVendorData() async {
@@ -34,41 +73,94 @@ class _VendorDashboardPageState extends State<VendorDashboardPage> {
   }
 
   @override
+  void dispose() {
+    _animationController.dispose();
+    _particleController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      body: Consumer2<AuthProvider, VendorProvider>(
+      body: Stack(
+        children: [
+          const FuturisticBackground(),
+          Consumer2<AuthProvider, VendorProvider>(
         builder: (context, authProvider, vendorProvider, child) {
           if (!authProvider.isAuthenticated || !authProvider.currentUser!.isVendor) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.store_outlined,
-                    size: 100,
-                    color: theme.colorScheme.onBackground.withOpacity(0.3),
+            return SafeArea(
+              child: Center(
+                child: AppTheme.glassMorphismContainer(
+                  margin: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(40),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.store_outlined,
+                        size: 100,
+                        color: isDark ? AppTheme.darkNeonBlue : AppTheme.neonBlue,
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'غير مصرح لك بالوصول',
+                        style: GoogleFonts.orbitron(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppTheme.darkGlowingWhite : AppTheme.metallicGray,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'غير مصرح لك بالوصول',
-                    style: theme.textTheme.headlineSmall,
-                  ),
-                ],
+                ),
               ),
             );
           }
 
           if (vendorProvider.isLoading) {
-            return Center(
-              child: CircularProgressIndicator(
-                color: AppTheme.neonBlue,
+            return SafeArea(
+              child: Center(
+                child: AppTheme.glassMorphismContainer(
+                  margin: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(40),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 60,
+                        height: 60,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 4,
+                          valueColor: AlwaysStoppedAnimation(
+                            isDark ? AppTheme.darkNeonBlue : AppTheme.neonBlue,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'جاري تحميل بيانات المتجر...',
+                        style: GoogleFonts.cairo(
+                          color: isDark ? AppTheme.darkGlowingWhite : AppTheme.metallicGray,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             );
           }
 
-          return RefreshIndicator(
+          return SafeArea(
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: RefreshIndicator(
             onRefresh: _loadVendorData,
             color: AppTheme.neonBlue,
             child: CustomScrollView(
@@ -83,10 +175,16 @@ class _VendorDashboardPageState extends State<VendorDashboardPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'إحصائيات المتجر',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        AppTheme.glassMorphismContainer(
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            'إحصائيات المتجر',
+                            style: GoogleFonts.orbitron(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppTheme.darkGlowingWhite : AppTheme.metallicGray,
+                              letterSpacing: 1.2,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -130,10 +228,16 @@ class _VendorDashboardPageState extends State<VendorDashboardPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'إجراءات سريعة',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        AppTheme.glassMorphismContainer(
+                          padding: const EdgeInsets.all(20),
+                          child: Text(
+                            'إجراءات سريعة',
+                            style: GoogleFonts.orbitron(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppTheme.darkGlowingWhite : AppTheme.metallicGray,
+                              letterSpacing: 1.2,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -146,7 +250,7 @@ class _VendorDashboardPageState extends State<VendorDashboardPage> {
                                 Icons.add_box_outlined,
                                 AppTheme.neonBlue,
                                 () {
-                                  Navigator.pushNamed(context, '/add-product');
+                                  Navigator.pushNamed(context, AppConfig.addProductRoute);
                                 },
                               ),
                             ),
@@ -158,7 +262,7 @@ class _VendorDashboardPageState extends State<VendorDashboardPage> {
                                 Icons.inventory_outlined,
                                 AppTheme.darkNeonPurple,
                                 () {
-                                  Navigator.pushNamed(context, '/manage-products');
+                                  Navigator.pushNamed(context, AppConfig.manageProductsRoute);
                                 },
                               ),
                             ),
@@ -204,28 +308,38 @@ class _VendorDashboardPageState extends State<VendorDashboardPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'الطلبات الأخيرة',
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pushNamed(context, AppConfig.vendorOrdersRoute);
-                              },
-                              child: Text(
-                                'عرض الكل',
-                                style: TextStyle(
-                                  color: AppTheme.neonBlue,
-                                  fontWeight: FontWeight.w600,
+                        AppTheme.glassMorphismContainer(
+                          padding: const EdgeInsets.all(20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'الطلبات الأخيرة',
+                                style: GoogleFonts.orbitron(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? AppTheme.darkGlowingWhite : AppTheme.metallicGray,
+                                  letterSpacing: 1.2,
                                 ),
                               ),
-                            ),
-                          ],
+                              AppTheme.neonButton(
+                                text: 'عرض الكل',
+                                onPressed: () {
+                                  Navigator.pushNamed(context, AppConfig.vendorOrdersRoute);
+                                },
+                                color: isDark ? AppTheme.darkNeonPurple : AppTheme.neonPurple,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                textStyle: GoogleFonts.cairo(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 16),
                         RecentOrdersList(
@@ -233,7 +347,7 @@ class _VendorDashboardPageState extends State<VendorDashboardPage> {
                           onOrderTap: (order) {
                             Navigator.pushNamed(
                               context,
-                              '/order-details',
+                              AppConfig.orderDetailsRoute,
                               arguments: {'orderId': order.id},
                             );
                           },
@@ -241,8 +355,12 @@ class _VendorDashboardPageState extends State<VendorDashboardPage> {
                             await vendorProvider.updateOrderStatus(orderId, status);
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('تم تحديث حالة الطلب'),
+                                SnackBar(
+                                  content: Text(
+                                    'تم تحديث حالة الطلب',
+                                    style: GoogleFonts.cairo(color: Colors.white),
+                                  ),
+                                  backgroundColor: AppTheme.neonBlue,
                                 ),
                               );
                             }
@@ -259,8 +377,13 @@ class _VendorDashboardPageState extends State<VendorDashboardPage> {
                 ),
               ],
             ),
+                ),
+              ),
+            ),
           );
         },
+          ),
+        ],
       ),
     );
   }
@@ -273,29 +396,58 @@ class _VendorDashboardPageState extends State<VendorDashboardPage> {
     VoidCallback onTap,
   ) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return GestureDetector(
+    return AnimatedBuilder(
+      animation: _particleController,
+      builder: (context, child) {
+        return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 10,
-              spreadRadius: 2,
+          child: AppTheme.glassMorphismContainer(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [color, color.withOpacity(0.8)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withOpacity(0.3 + 0.2 * math.sin(_particleController.value * 2 * math.pi)),
+                        blurRadius: 20,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: GoogleFonts.cairo(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppTheme.darkGlowingWhite : AppTheme.metallicGray,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+          ),
+        );
+      },
+    );
+  }
+}
+
               ),
               child: Icon(
                 icon,

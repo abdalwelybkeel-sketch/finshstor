@@ -158,7 +158,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                         builder: (context, authProvider, child) {
                           if (!authProvider.isAuthenticated) {
                             return AppTheme.glassMorphismContainer(
-                              margin: const EdgeInsets.all(20),
+                              margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                               padding: const EdgeInsets.all(40),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -213,21 +213,21 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       icon: Icons.person_outline,
                                       title: 'تعديل الملف الشخصي',
                                       onTap: () {
-                                        Navigator.pushNamed(context, '/edit-profile');
+                                        Navigator.pushNamed(context, AppConfig.editProfileRoute);
                                       },
                                     ),
                                     ProfileMenuItem(
                                       icon: Icons.location_on_outlined,
                                       title: l10n.addresses,
                                       onTap: () {
-                                        Navigator.pushNamed(context, '/addresses');
+                                        Navigator.pushNamed(context, AppConfig.addressesRoute);
                                       },
                                     ),
                                     ProfileMenuItem(
                                       icon: Icons.payment_outlined,
                                       title: l10n.paymentMethods,
                                       onTap: () {
-                                        Navigator.pushNamed(context, '/payment-methods');
+                                        Navigator.pushNamed(context, AppConfig.paymentMethodsRoute);
                                       },
                                     ),
 
@@ -246,7 +246,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                       icon: Icons.favorite_outline,
                                       title: 'المفضلة',
                                       onTap: () {
-                                        Navigator.pushNamed(context, '/favorites');
+                                        Navigator.pushNamed(context, AppConfig.favoritesRoute);
                                       },
                                     ),
 
@@ -391,6 +391,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
               ),
             ),
           ),
+        ],
         ],
       ),
     );

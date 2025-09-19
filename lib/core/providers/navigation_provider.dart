@@ -8,8 +8,11 @@ class NavigationProvider extends ChangeNotifier {
   int get cartItemCount => _cartItemCount;
 
   void setIndex(int index) {
+    // Ensure index is within valid range (0-3 for 4 tabs)
+    if (index >= 0 && index <= 3) {
     _currentIndex = index;
     notifyListeners();
+    }
   }
 
   void updateCartItemCount(int count) {
